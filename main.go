@@ -3,6 +3,7 @@ package main
 import (
 	"image/color"
 	"log"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -12,17 +13,38 @@ const (
 	screenHeight = 480
 )
 
-type game struct{}
+type Line struct {
+	X1, Y1    int
+	Magnitude int
+	Degrees   float64
+	color.Color
+}
 
-func (*game) Layout(outWidth, outHeight int) (w, h int) { return screenWidth, screenHeight }
-func (*game) Update() error                             { return nil }
-func (*game) Draw(screen *ebiten.Image) {
-	DrawLineDDA(screen, 320, 240, 300, 50, color.RGBA{255, 1, 1, 255})
+func ToRadians(Degrees float64) float64 {
+	return Degrees * math.Pi / float64(180)
+}
+
+type game struct {
+	l Line
+}
+
+func (g *game) Layout(outWidth, outHeight int) (w, h int) { return screenWidth, screenHeight }
+func (g *game) Update() error {
+	g.l.Degrees += 1
+	return nil
+}
+func (g *game) Draw(screen *ebiten.Image) {
+	x := float64(g.l.Magnitude) * math.Cos(ToRadians(g.l.Degrees))
+	y := float64(g.l.Magnitude) * math.Sin(ToRadians(g.l.Degrees))
+	x2, y2 := x+float64(g.l.X1), y+float64(g.l.Y1)
+
+	DrawLineDDA(screen, g.l.X1, g.l.Y1, int(x2), int(y2), g.l.Color)
 }
 
 func main() {
 	ebiten.SetWindowSize(screenWidth, screenHeight)
-	if err := ebiten.RunGame(&game{}); err != nil {
+	g := game{Line{320, 240, 100, 0, color.RGBA{255, 1, 1, 255}}}
+	if err := ebiten.RunGame(&g); err != nil {
 		log.Fatal(err)
 	}
 }
