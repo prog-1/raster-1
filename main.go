@@ -3,6 +3,7 @@ package main
 import (
 	"image/color"
 	"log"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -15,19 +16,22 @@ const (
 )
 
 type Game struct {
+	//all global variables
 	width, height int
+	angle         float64
 }
 
 //---------------------------Update-------------------------------------
 
 func (g *Game) Update() error {
+	g.angle += 0.01 //increasing line angle
 	return nil
 }
 
 //---------------------------Draw-------------------------------------
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	g.DrawLineDDA(screen, screenWidth/2, screenHeight/2, screenWidth/2+100, screenHeight/2, color.RGBA{100, 200, 230, 255}) //Line drawing
+	g.DrawLineDDA(screen, screenWidth/2, screenHeight/2, screenWidth/2+150, screenHeight/2, color.RGBA{100, 200, 230, 255}) //Drawing line
 }
 
 //-------------------------Draw-Functions-----------------------------
@@ -40,7 +44,13 @@ func (g *Game) DrawLineDDA(img *ebiten.Image, x1, y1, x2, y2 int, c color.Color)
 	}
 	k := float64(y2-y1) / float64(x2-x1)
 	for x, y := x1, float64(y1)+0.5; x <= x2; x, y = x+1, y+k {
-		img.Set(x, int(y), c) //without rotation
+		//-----------------------------------------------------
+		// Coordinate rotation logic
+		xRot := float64(x1) + float64(x-x1)*math.Cos(g.angle) - (y-float64(y1))*math.Sin(g.angle)
+		yRot := float64(y1) + float64(x-x1)*math.Sin(g.angle) + (y-float64(y1))*math.Cos(g.angle)
+		//-----------------------------------------------------
+		img.Set(int(xRot), int(yRot), c) //with rotation
+		//img.Set(x, int(y), c) //without rotation
 	}
 }
 
