@@ -4,7 +4,6 @@ import (
 	"image/color"
 	"log"
 	"math"
-	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -21,7 +20,6 @@ type Point struct {
 
 type Line struct {
 	pos1, pos2 Point
-	angle      float64
 	color      color.RGBA
 }
 
@@ -39,10 +37,6 @@ func NewLine(x1, y1, x2, y2 float64) *Line {
 	}
 }
 
-func (l *Line) Update() {
-	l.angle += 0.01
-}
-
 // DrawLineDDA rasterizes a line using Digital Differential Analyzer algorithm.
 func (l *Line) DrawLineDDA(img *ebiten.Image, x1, y1, x2, y2 float64, c color.Color) {
 	if x2 < x1 {
@@ -52,22 +46,33 @@ func (l *Line) DrawLineDDA(img *ebiten.Image, x1, y1, x2, y2 float64, c color.Co
 	k := math.Abs((y2 - y1) / (x2 - x1))
 	if k <= 1 {
 		for x, y := x1, y1+0.5; x <= x2; x, y = x+1, y+k {
-			xr := x2 + (x-x2)*math.Cos(l.angle) - (y-y2)*math.Sin(l.angle)
-			yr := y2 + (x-x2)*math.Sin(l.angle) + (y-y2)*math.Cos(l.angle)
-			img.Set(int(xr), int(yr), c)
+			img.Set(int(x), int(y), c)
 		}
 	} else {
 		k := math.Abs((x2 - x1) / (y2 - y1))
 		for x, y := x1+0.5, y1; y <= y2; x, y = x+k, y+1 {
-			xr := x2 + (x-x2)*math.Cos(l.angle) - (y-y2)*math.Sin(l.angle)
-			yr := y2 + (x-x2)*math.Sin(l.angle) + (y-y2)*math.Cos(l.angle)
-			img.Set(int(xr), int(yr), c)
+			img.Set(int(x), int(y), c)
 		}
 	}
 }
 
 func (l *Line) Draw(screen *ebiten.Image) {
-	//ebitenutil.DrawLine(screen, 200, 100, 500, 400, l.color)
+	if l.pos2.x >= screenWidth/2 && l.pos2.y < screenHeight/2 {
+		l.pos2.x += 1
+		l.pos2.y += 1
+	}
+	if l.pos2.x >= screenWidth/2 && l.pos2.y >= screenHeight/2 {
+		l.pos2.x -= 1
+		l.pos2.y += 1
+	}
+	if l.pos2.x <= screenWidth/2 && l.pos2.y >= screenHeight/2 {
+		l.pos2.x -= 1
+		l.pos2.y -= 1
+	}
+	if l.pos2.x < screenWidth/2 && l.pos2.y <= screenHeight/2 {
+		l.pos2.x += 1
+		l.pos2.y -= 1
+	}
 	l.DrawLineDDA(screen, l.pos1.x, l.pos1.y, l.pos2.x, l.pos2.y, l.color)
 }
 
@@ -75,8 +80,6 @@ func (l *Line) Draw(screen *ebiten.Image) {
 type Game struct {
 	width, height int
 	line          *Line
-	// last is a timestamp when Update was called last time.
-	last time.Time
 }
 
 // NewGame returns a new Game instance.
@@ -85,7 +88,6 @@ func NewGame(width, height int) *Game {
 		width:  width,
 		height: height,
 		line:   NewLine(float64(width/2), float64(height/2), 130, 130),
-		last:   time.Now(),
 	}
 }
 
@@ -95,10 +97,6 @@ func (g *Game) Layout(outWidth, outHeight int) (w, h int) {
 
 // Update updates a game state.
 func (g *Game) Update() error {
-	t := time.Now()
-	//dt := float64(t.Sub(g.last).Milliseconds())
-	g.last = t
-	g.line.Update()
 	return nil
 }
 
