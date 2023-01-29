@@ -19,15 +19,18 @@ type Point struct {
 }
 
 type Line struct {
-	pos1, pos2 Point
-	color      color.RGBA
+	pos1, pos2         Point
+	radiansX, radiansY float64
+	color              color.RGBA
 }
 
 // NewLine initializes and returns a new Line instance.
 func NewLine(x1, y1, x2, y2 float64) *Line {
 	return &Line{
-		pos1: Point{x: x1, y: y1},
-		pos2: Point{x: x2, y: y2},
+		pos1:     Point{x: x1, y: y1},
+		pos2:     Point{x: x2, y: y2},
+		radiansX: math.Cos(x2),
+		radiansY: math.Sin(y2),
 		color: color.RGBA{
 			R: 0xff,
 			G: 0xff,
@@ -39,17 +42,21 @@ func NewLine(x1, y1, x2, y2 float64) *Line {
 
 // DrawLineDDA rasterizes a line using Digital Differential Analyzer algorithm.
 func (l *Line) DrawLineDDA(img *ebiten.Image, x1, y1, x2, y2 float64, c color.Color) {
-	if x2 < x1 {
-		x1, x2 = x2, x1
-		y1, y2 = y2, y1
-	}
-	k := math.Abs((y2 - y1) / (x2 - x1))
-	if k <= 1 {
+	if math.Abs(y2-y1) <= math.Abs(x2-x1) {
+		if x2 < x1 {
+			x1, x2 = x2, x1
+			y1, y2 = y2, y1
+		}
+		k := (y2 - y1) / (x2 - x1)
 		for x, y := x1, y1+0.5; x <= x2; x, y = x+1, y+k {
 			img.Set(int(x), int(y), c)
 		}
 	} else {
-		k := math.Abs((x2 - x1) / (y2 - y1))
+		if y2 < y1 {
+			x1, x2 = x2, x1
+			y1, y2 = y2, y1
+		}
+		k := (x2 - x1) / (y2 - y1)
 		for x, y := x1+0.5, y1; y <= y2; x, y = x+k, y+1 {
 			img.Set(int(x), int(y), c)
 		}
@@ -57,22 +64,12 @@ func (l *Line) DrawLineDDA(img *ebiten.Image, x1, y1, x2, y2 float64, c color.Co
 }
 
 func (l *Line) Draw(screen *ebiten.Image) {
-	if l.pos2.x >= screenWidth/2 && l.pos2.y < screenHeight/2 {
-		l.pos2.x += 1
-		l.pos2.y += 1
-	}
-	if l.pos2.x >= screenWidth/2 && l.pos2.y >= screenHeight/2 {
-		l.pos2.x -= 1
-		l.pos2.y += 1
-	}
-	if l.pos2.x <= screenWidth/2 && l.pos2.y >= screenHeight/2 {
-		l.pos2.x -= 1
-		l.pos2.y -= 1
-	}
-	if l.pos2.x < screenWidth/2 && l.pos2.y <= screenHeight/2 {
-		l.pos2.x += 1
-		l.pos2.y -= 1
-	}
+	l.radiansX += math.Pi / 180
+	l.radiansY += math.Pi / 180
+	x := math.Cos(l.radiansX)
+	y := math.Sin(l.radiansY)
+	l.pos2.x = l.pos2.x + x
+	l.pos2.y = l.pos2.y + y
 	l.DrawLineDDA(screen, l.pos1.x, l.pos1.y, l.pos2.x, l.pos2.y, l.color)
 }
 
@@ -87,7 +84,7 @@ func NewGame(width, height int) *Game {
 	return &Game{
 		width:  width,
 		height: height,
-		line:   NewLine(float64(width/2), float64(height/2), 130, 130),
+		line:   NewLine(float64(width/2), float64(height/2), float64(width/2), 130),
 	}
 }
 
