@@ -19,18 +19,17 @@ type Point struct {
 }
 
 type Line struct {
-	pos1, pos2         Point
-	radiansX, radiansY float64
-	color              color.RGBA
+	pos1, pos2 Point
+	radians    float64
+	color      color.RGBA
 }
 
 // NewLine initializes and returns a new Line instance.
 func NewLine(x1, y1, x2, y2 float64) *Line {
 	return &Line{
-		pos1:     Point{x: x1, y: y1},
-		pos2:     Point{x: x2, y: y2},
-		radiansX: math.Cos(x2),
-		radiansY: math.Sin(y2),
+		pos1:    Point{x: x1, y: y1},
+		pos2:    Point{x: x2, y: y2},
+		radians: math.Cos(math.Abs(x2-x1)) / math.Sin(math.Abs(y2-y1)), // tangens
 		color: color.RGBA{
 			R: 0xff,
 			G: 0xff,
@@ -63,11 +62,19 @@ func (l *Line) DrawLineDDA(img *ebiten.Image, x1, y1, x2, y2 float64, c color.Co
 	}
 }
 
+func (l *Line) Update() {
+
+}
+
 func (l *Line) Draw(screen *ebiten.Image) {
-	l.radiansX += math.Pi / 180
-	l.radiansY += math.Pi / 180
-	x := math.Cos(l.radiansX)
-	y := math.Sin(l.radiansY)
+	l.radians += math.Pi / 180
+	x := math.Cos(l.radians)
+	y := math.Sin(l.radians)
+	// fmt.Println("x:", x)
+	// fmt.Println("y:", y)
+	// fmt.Println("rad:", l.radians)
+	// fmt.Println("smth1:", math.Cos(l.pos2.x))
+	// fmt.Println("smth2:", math.Sin(l.pos2.y))
 	l.pos2.x = l.pos2.x + x
 	l.pos2.y = l.pos2.y + y
 	l.DrawLineDDA(screen, l.pos1.x, l.pos1.y, l.pos2.x, l.pos2.y, l.color)
@@ -84,7 +91,7 @@ func NewGame(width, height int) *Game {
 	return &Game{
 		width:  width,
 		height: height,
-		line:   NewLine(float64(width/2), float64(height/2), float64(width/2), 130),
+		line:   NewLine(float64(width/2), float64(height/2), 130, 130),
 	}
 }
 
@@ -94,6 +101,7 @@ func (g *Game) Layout(outWidth, outHeight int) (w, h int) {
 
 // Update updates a game state.
 func (g *Game) Update() error {
+	//g.line.Update()
 	return nil
 }
 
