@@ -21,15 +21,33 @@ type Point struct {
 type Line struct {
 	pos1, pos2 Point
 	radians    float64
+	magnitude  float64
+	dir        float64
 	color      color.RGBA
+}
+
+func Magnitude(x1, y1, x2, y2 float64) float64 {
+	if math.Abs(x2-x1) > math.Abs(y2-y1) {
+		return math.Abs(x2 - x1)
+	}
+	return math.Abs(y2 - y1)
+}
+
+func Dir(x1, y1, x2, y2 float64) float64 {
+	if x2 > x1 {
+		return 1
+	}
+	return -1
 }
 
 // NewLine initializes and returns a new Line instance.
 func NewLine(x1, y1, x2, y2 float64) *Line {
 	return &Line{
-		pos1:    Point{x: x1, y: y1},
-		pos2:    Point{x: x2, y: y2},
-		radians: math.Cos(math.Abs(x2-x1)) / math.Sin(math.Abs(y2-y1)), // tangens
+		pos1:      Point{x: x1, y: y1},
+		pos2:      Point{x: x2, y: y2},
+		radians:   math.Atan((y2 - y1) / (x2 - x1)), // math.Atan(k)  k выражено из уравнения прямой, проходящей через две точки
+		dir:       Dir(x1, y1, x2, y2),
+		magnitude: Magnitude(x1, y1, x2, y2),
 		color: color.RGBA{
 			R: 0xff,
 			G: 0xff,
@@ -40,7 +58,7 @@ func NewLine(x1, y1, x2, y2 float64) *Line {
 }
 
 // DrawLineDDA rasterizes a line using Digital Differential Analyzer algorithm.
-func (l *Line) DrawLineDDA(img *ebiten.Image, x1, y1, x2, y2 float64, c color.Color) {
+func DrawLineDDA(img *ebiten.Image, x1, y1, x2, y2 float64, c color.Color) {
 	if math.Abs(y2-y1) <= math.Abs(x2-x1) {
 		if x2 < x1 {
 			x1, x2 = x2, x1
@@ -63,21 +81,15 @@ func (l *Line) DrawLineDDA(img *ebiten.Image, x1, y1, x2, y2 float64, c color.Co
 }
 
 func (l *Line) Update() {
-
+	l.radians += math.Pi / 180
+	x := math.Cos(l.radians) * l.magnitude
+	y := math.Sin(l.radians) * l.magnitude
+	l.pos2.x = l.pos1.x + x*l.dir
+	l.pos2.y = l.pos1.y + y*l.dir
 }
 
 func (l *Line) Draw(screen *ebiten.Image) {
-	l.radians += math.Pi / 180
-	x := math.Cos(l.radians)
-	y := math.Sin(l.radians)
-	// fmt.Println("x:", x)
-	// fmt.Println("y:", y)
-	// fmt.Println("rad:", l.radians)
-	// fmt.Println("smth1:", math.Cos(l.pos2.x))
-	// fmt.Println("smth2:", math.Sin(l.pos2.y))
-	l.pos2.x = l.pos2.x + x
-	l.pos2.y = l.pos2.y + y
-	l.DrawLineDDA(screen, l.pos1.x, l.pos1.y, l.pos2.x, l.pos2.y, l.color)
+	DrawLineDDA(screen, l.pos1.x, l.pos1.y, l.pos2.x, l.pos2.y, l.color)
 }
 
 // Game is a game instance.
@@ -101,7 +113,7 @@ func (g *Game) Layout(outWidth, outHeight int) (w, h int) {
 
 // Update updates a game state.
 func (g *Game) Update() error {
-	//g.line.Update()
+	g.line.Update()
 	return nil
 }
 
