@@ -34,7 +34,7 @@ func Magnitude(x1, y1, x2, y2 float64) float64 {
 }
 
 func Dir(x1, y1, x2, y2 float64) float64 {
-	if x2 > x1 {
+	if x2 >= x1 {
 		return 1
 	}
 	return -1
