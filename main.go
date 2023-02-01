@@ -81,11 +81,11 @@ func DrawLineDDA(img *ebiten.Image, x1, y1, x2, y2 float64, c color.Color) {
 }
 
 func (l *Line) Update() {
-	l.radians += math.Pi / 180
 	x := math.Cos(l.radians) * l.magnitude
 	y := math.Sin(l.radians) * l.magnitude
 	l.pos2.x = l.pos1.x + x*l.dir
 	l.pos2.y = l.pos1.y + y*l.dir
+	l.radians += math.Pi / 180
 }
 
 func (l *Line) Draw(screen *ebiten.Image) {
