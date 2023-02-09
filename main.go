@@ -28,15 +28,15 @@ type Line struct {
 // These 2 functions are needed so that the initial length of the line always remains the same
 
 func StartingXPos(x1, y1, x2, y2, radians float64) float64 {
-	if x1 == x2 && y1 != y2 { // if the line is vertical
-		return StartingYPos(x1, y1, x1, y2, radians)
+	if x1 == x2 { // if the line is vertical
+		return (y2 - y1) / math.Sin(radians)
 	}
 	return (x2 - x1) / math.Cos(radians)
 }
 
 func StartingYPos(x1, y1, x2, y2, radians float64) float64 {
-	if y1 == y2 && x1 != x2 { // if the line is horizontal
-		return StartingXPos(x1, y1, x2, y2, radians)
+	if y1 == y2 { // if the line is horizontal
+		return (x2 - x1) / math.Cos(radians)
 	}
 	return (y2 - y1) / math.Sin(radians)
 }
