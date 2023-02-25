@@ -53,10 +53,8 @@ func (g *game) Update() error {
 func (g *game) Draw(screen *ebiten.Image) {
 	g.p0.x = screenWidth / 2
 	g.p0.y = screenHeight / 2
-	g.p1.x = g.p0.x*math.Cos(g.angle) + g.p0.y*math.Sin(g.angle)
-	g.p1.y = -g.p0.x*math.Sin(g.angle) + g.p0.y*math.Cos(g.angle)
-	g.p1.x += g.p0.x
-	g.p1.y += g.p0.y
+	g.p1.x = (math.Cos(g.angle) * (-math.Sin(g.angle))) * g.p0.x
+	g.p1.y = math.Sin(g.angle) * math.Cos(g.angle) * g.p0.y
 	DrawLineDDA(screen, g.p0, g.p1, color.RGBA{255, 0, 0, 255})
 }
 
