@@ -11,3 +11,6 @@
 
 1. Implement `DrawLineDDA`. Prove it works by attaching screenshots.
 2. (optional) Implement a program that rotates a vector. The zero point must be in the middle of the window. You must not use any built-in rotation functionality. Just animate an angle and recompute point position using cos/sin functions.
+
+## Result
+![](LineRasterization.gif)
